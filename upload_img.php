@@ -71,7 +71,7 @@ if($moveFile != true)
 
 // include_once("upld_fn.php");
 $target = "uploads/$name";
-$resize = "uploads/resized_$name";
+$resize = "uploads/resized_".time().$name;
 
 $max_height = 360; 
 $max_width  = 640;
@@ -80,10 +80,8 @@ upld_fn($target, $resize, $max_width, $max_height, $extension);
 
 echo "<h2>Original image:-</h2> ";
 echo "<img src='uploads/$name' /> <br/>";
-echo "<h2>Resized image:-</h2> ";
-$img_path = "uploads/resized_$name";
-echo "<img src='$img_path' />";
 
+$img_path = "uploads/resized_".time().$name;
 
 
 function upld_fn($targett, $newcpy, $w, $h, $extn)
@@ -131,11 +129,12 @@ try {
 $keyName = 'test_example/' . basename($_FILES["uploads"]['name']);
 $pathInS3 = 'https://s3.ap-south-1.amazonaws.com/' . $bucketName . '/' . $keyName;
 
+global $url;
 try {
 
     $file = $_FILES["uploads"]['tmp_name'];
 
-    $s3->putObject(
+    $result = $s3->putObject(
         array(
             'Bucket' => $bucketName,
             'Key' =>  $keyName,
@@ -144,11 +143,18 @@ try {
             'ACL' => 'public-read'
         )
     );
+
+    $url = $result->get('ObjectURL');
+    echo "<br>Image uploaded successfully. Image path is: ". $result->get('ObjectURL');
+
 } catch (S3Exception $e) {
     die('Error:' . $e->getMessage());
 } catch (Exception $e) {
     die('Error:' . $e->getMessage());
 }
 
-echo '<h4>File uploaded successfully</h4>' . '<br>';
+echo "<h2>Resized image:-</h2> ";
+echo "<img src='$url' />";
+
+// echo '<h4>File uploaded successfully</h4>' . '<br>';
 echo '<button><a href="get.php">View Listing</a></button>';
